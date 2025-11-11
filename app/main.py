@@ -1,11 +1,22 @@
 from fastapi import FastAPI
-from app import routes
+from sqlmodel import SQLModel
+from app.database import engine
+from app import model
+from contextlib import asynccontextmanager
 
-app = FastAPI(title="Casino Backend", version="1.0.0")
 
-app.include_router(routes.router)
+def init_db():
+    SQLModel.metadata.create_all(engine)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    yield
+
+app = FastAPI(lifespan=lifespan)
 
 
 @app.get("/")
-def root():
-    return {"message": "Bienvenido al Casino API 🎰"}
+async def root():
+    return {"message": "Hello World"}

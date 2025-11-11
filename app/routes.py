@@ -9,5 +9,5 @@ def list_games():
 
 
 @router.post("/bet")
-def make_bet(amount: float, game: str):
+def make_bet(amount: float, game: str) -> dict[str, str | float]:
     return {"status": "ok", "amount": amount, "game": game}
