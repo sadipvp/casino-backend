@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from sqlmodel import SQLModel
 from app.database import engine
-from app import model
 from contextlib import asynccontextmanager
 from app.auth.routes import router as auth_router
 
