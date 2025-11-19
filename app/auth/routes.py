@@ -92,6 +92,13 @@ def login(
     }
 
 
+@router.get("/Debug/users")
+def Debug_Users(db: Session = Depends(get_session)):
+    statement = select(User)
+    users = db.exec(statement).all()
+    return users
+
+
 def get_user_from_token(db: Session, token: str):
     payload = decode_access_token(token)
     if not payload:
