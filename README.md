@@ -4,7 +4,7 @@ Desarrollado en FastAPI, usando SQLModel, JWT
 
 Pasos para ejecutar el proyecto 
 
-git clone https://github.com/tuusuario/casino-backend.git
+git clone https://github.com/tuusuario/casino-backend.git \n
 cd casino-backend
 python -m venv venv
 source venv/bin/activate   # Linux
