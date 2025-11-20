@@ -2,6 +2,7 @@
 from fastapi import FastAPI
 from sqlmodel import SQLModel
 from contextlib import asynccontextmanager
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import engine
 from app.auth.routes import router as auth_router
@@ -18,7 +19,20 @@ async def lifespan(app: FastAPI):
     yield
 
 
+
 app = FastAPI(lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",   # Frontend DEV
+        "http://127.0.0.1:5173",
+        "*",  # (solo para desarrollo)
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(auth_router)
 app.include_router(profile_router)   # <--- nuevo
@@ -27,3 +41,7 @@ app.include_router(profile_router)   # <--- nuevo
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
+
+@app.get("/ping")
+async def ping():
+    return {"pong"}
