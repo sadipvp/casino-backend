@@ -28,3 +28,34 @@ class User(SQLModel, table=True):
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc)
     )
+class RouletteSession(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    # server_seed (hex) guardado cifrado/en DB; en producción deberías cifrarlo o usar KMS
+    server_seed: str
+    server_seed_hash: str
+    nonce: int = Field(default=0)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    revealed: bool = Field(default=False)
+
+    # relación inversa (no obligatorio)
+    spins: List["Spin"] = Relationship(back_populates="session")
+
+
+class Spin(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    session_id: int = Field(foreign_key="roulettesession.id")
+    nonce: int
+    client_seed: str
+    hmac_hex: str
+    pocket: int
+    color: str
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+    # ---- nuevos campos para apuestas ----
+    user_id: Optional[int] = Field(default=None, foreign_key="user.id")
+    bet_type: Optional[str] = None               # e.g. "straight", "color", "odd_even"...
+    bet_payload: Optional[str] = None            # texto JSON con los detalles (ej. '{"number":17}')
+    bet_amount: float = Field(default=0.0)
+    payout: float = Field(default=0.0)           # ganancia neta o -stake
+
+    session: Optional[RouletteSession] = Relationship(back_populates="spins")

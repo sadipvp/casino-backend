@@ -6,7 +6,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import engine
 from app.auth.routes import router as auth_router
-from app.users.routes import router as profile_router  # <--- nuevo
+
+from app.roulette.routes import router as roulette_router  # <- nueva línea
+
+from app.users.routes import router as profile_router  # <--- nuevo 
 
 
 def init_db():
@@ -36,6 +39,8 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(profile_router)   # <--- nuevo
+
+app.include_router(roulette_router)
 
 
 @app.get("/")
