@@ -88,4 +88,4 @@ def update_Password(
 def User_saldo(
     current_user: User = Depends(get_current_user),
 ):
-    return current_user.saldo
+    return { "saldo": current_user.saldo }
