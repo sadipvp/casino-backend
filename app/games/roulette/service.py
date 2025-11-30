@@ -208,19 +208,14 @@ def create_bet(db: Session, session: RouletteSession, username: str, bet: Dict[s
     won, payout = evaluate_bet(bet, spin)  # payout is net (positive if win, negative stake if lose)
 
     # update user balances and stats
-    # if payout > 0: user gains payout, otherwise subtract stake (but stake already removed below)
-    # define accounting: we will subtract stake first, then add payout if positive
-    user.saldo -= amount
-    if payout > 0:
-        user.saldo += (amount + payout) - amount  # payout is net win; simplify: user.saldo += payout
-        # but payout already expresses net win, so add payout
-        # Net accounting: start -amount, then + (amount + payout) ? to avoid duplication, better:
-        # We'll implement: user.saldo += payout
-    # but to be clear, do:
-    user.saldo += payout  # payout is positive for win, negative for loss
+    # payout ya incluye la ganancia o pérdida completa
+    # Si gana: payout = cantidad ganada (ej: 100 apostado -> payout = 100 ganado)
+    # Si pierde: payout = -cantidad apostada (ej: 100 apostado -> payout = -100)
+    user.saldo += payout
+    
     # update statistics
-    if payout >= 0:
-        user.ganancias_totales = (user.ganancias_totales or 0) + max(payout, 0)
+    if payout > 0:
+        user.ganancias_totales = (user.ganancias_totales or 0) + payout
     else:
         user.perdidas_totales = (user.perdidas_totales or 0) + (-payout)
 

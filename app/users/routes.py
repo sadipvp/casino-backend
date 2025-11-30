@@ -89,3 +89,35 @@ def User_saldo(
     current_user: User = Depends(get_current_user),
 ):
     return { "saldo": current_user.saldo }
+
+#### solo development ####
+@router.get("/add-balance/{user_id}/{amount}")
+def add_balance_to_user(
+    user_id: int,
+    amount: float,
+    db: Session = Depends(get_session),
+):
+    """
+    Agrega saldo a un usuario específico mediante URL.
+    Ejemplo: GET /profile/add-balance/1/100.50
+    """
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="El monto debe ser mayor a 0")
+    
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    user.saldo += amount
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    
+    return {
+        "message": "Saldo agregado exitosamente",
+        "user_id": user.id,
+        "username": user.username,
+        "saldo_anterior": user.saldo - amount,
+        "monto_agregado": amount,
+        "saldo_nuevo": user.saldo
+    }
