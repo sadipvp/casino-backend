@@ -7,9 +7,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine
 from app.auth.routes import router as auth_router
 
-from app.roulette.routes import router as roulette_router  # <- nueva línea
+from app.games.slot_machine.routes import router as slot_router
+from app.games.roulette.routes import router as roulette_router  # <- nueva línea
 
-from app.users.routes import router as profile_router  # <--- nuevo 
+from app.users.routes import router as profile_router  # <--- nuevo
 
 from app.admin.routes import router as admin_router
 
@@ -24,7 +25,6 @@ def init_db():
 async def lifespan(app: FastAPI):
     init_db()
     yield
-
 
 
 app = FastAPI(lifespan=lifespan)
@@ -43,7 +43,7 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(profile_router)   # <--- nuevo
-
+app.include_router(slot_router)
 app.include_router(roulette_router)
 
 app.include_router(admin_router)
@@ -54,6 +54,7 @@ app.include_router(credits_router)
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
+
 
 @app.get("/ping")
 async def ping():

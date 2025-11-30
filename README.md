@@ -21,7 +21,7 @@ uvicorn app.main:app --reload
 
 Endpoints principales
 
-Auth
+Auth -------
 
 POST /auth/signup → Crear usuario
 
@@ -30,6 +30,17 @@ POST /auth/login → Login y generación de JWT
 GET /auth/me → Consultar usuario desde token
 
 GET /Debug/users → Listar todos los usuarios
+
+User --------
+
+PATCH /profile/me/update -> modificar telefono y email
+
+PATCH /profile/me/password -> modificar contraseña vieja
+
+GET   /profile/me/saldo -> Devuelve el saldo del usuario a partir del Token
+
+GET   /profile/{username} -> Devuelve la informacion del usuario   
+
 
 
 Variables de entorno

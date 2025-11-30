@@ -5,29 +5,16 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlmodel import Session
-
+from fastapi.security import OAuth2AuthorizationCodeBearer
+from app.users.dependencies import get_current_user
 from app.database import get_session
-from app.users.services import get_profile_by_username
+from app.users.services import get_profile_by_username, update_user_contact
 from app.model import User
+from app.users.schemas import UserUpdateConctact, PerfilResponse, UserUpdatePassword
+from app.auth.utils import verify_password, get_password_hash
+
 
 router = APIRouter(prefix="/profile", tags=["Profile"])
-
-
-class PerfilResponse(BaseModel):
-    # Columna izquierda
-    nombres: Optional[str]
-    apellidos: Optional[str]
-    usuario: str
-    correo_electronico: str
-    telefono: Optional[str]
-    fecha_nacimiento: Optional[date]
-    tipo_documento: Optional[str]
-    numero_documento: Optional[str]
-
-    # Columna derecha
-    saldo: float
-    ganancias_totales: float
-    perdidas_totales: float
 
 
 @router.get("/{username}", response_model=PerfilResponse)
@@ -41,7 +28,7 @@ def get_profile(username: str, db: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
     return PerfilResponse(
-        nombres=user.nombres,
+        nombres=user.name,
         apellidos=user.apellidos,
         usuario=user.username,
         correo_electronico=user.email,
@@ -53,3 +40,52 @@ def get_profile(username: str, db: Session = Depends(get_session)):
         ganancias_totales=user.ganancias_totales,
         perdidas_totales=user.perdidas_totales,
     )
+
+
+@router.patch("/me/update", response_model=UserUpdateConctact)
+def update_user(
+    contact_in: UserUpdateConctact,
+    db: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+
+    if contact_in.email is not None:
+        current_user.email = contact_in.email
+    if contact_in.telefono is not None:
+        current_user.telefono = contact_in.telefono
+
+    db.add(current_user)
+    db.commit()
+    db.refresh(current_user)
+
+    return UserUpdateConctact(
+        email=current_user.email,
+        telefono=current_user.telefono,
+    )
+
+
+@router.patch("/me/password")
+def update_Password(
+        contact_in: UserUpdatePassword,
+        db: Session = Depends(get_session),
+        current_user: User = Depends(get_current_user),
+):
+    if verify_password(contact_in.old_password, current_user.password_hash):
+        if contact_in.old_password != contact_in.new_password:
+            new_password = get_password_hash(contact_in.new_password)
+            current_user.password_hash = new_password
+
+            db.add(current_user)
+            db.commit()
+            db.refresh(current_user)
+
+    else:
+        return {"message": "La contraseña no coincide con la anterior "}
+    return {"message": "La contraseña ha sido actualizada"}
+
+
+@router.get("/me/saldo")
+def User_saldo(
+    current_user: User = Depends(get_current_user),
+):
+    return { "saldo": current_user.saldo }

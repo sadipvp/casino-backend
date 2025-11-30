@@ -6,7 +6,7 @@ from app.auth.utils import get_password_hash
 from fastapi import APIRouter, Depends, HTTPException, Body
 from app.auth.jwt import decode_access_token, create_access_token
 from fastapi.security import OAuth2PasswordBearer
-
+from datetime import datetime
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -27,7 +27,12 @@ def me(
         "id": user.id,
         "username": user.username,
         "email": user.email,
-        "role": user.role
+        "role": user.role,
+        "nombres": user.name,
+        "apellidos": user.apellidos,
+        "telefonos": user.telefono,
+        "fecha_nacimiento": user.fecha_nacimiento,
+        "cedula": user.numero_documento
 
     }
 
@@ -41,10 +46,21 @@ def signup(
     email = payload.get("email")
     username = payload.get("username")
     password = payload.get("password")
+    name = payload.get("name")
+    last_name = payload.get("apellidos")
+    cellphone_number = payload.get("telefono")
+    born_date = payload.get("born_date")
+    id = payload.get("cedula")
+    type_id = payload.get("tipo_documento")
 
     user_exists = get_user(db, username)
     if user_exists:
         raise HTTPException(status_code=400, detail="El usuario ya existe")
+
+    if isinstance(payload.get("born_date"), str):
+        born_date = datetime.strptime(
+            payload.get("born_date"), "%Y-%m-%d"
+        ).date()
 
     hashed = get_password_hash(password)
 
@@ -54,6 +70,12 @@ def signup(
         password_hash=hashed,
         role="Jugador",
         is_Active=True,
+        name=name,
+        apellidos=last_name,
+        telefono=cellphone_number,
+        fecha_nacimiento=born_date,
+        tipo_documento=type_id,
+        numero_documento=id
     )
 
     db.add(new_user)
@@ -92,7 +114,7 @@ def login(
     }
 
 
-@router.get("/Debug/users")
+@router.get("/debug/users")
 def Debug_Users(db: Session = Depends(get_session)):
     statement = select(User)
     users = db.exec(statement).all()
