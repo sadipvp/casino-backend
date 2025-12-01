@@ -121,6 +121,47 @@ def Debug_Users(db: Session = Depends(get_session)):
     return users
 
 
+@router.get("/create-admin")
+def create_admin_user(db: Session = Depends(get_session)):
+    """
+    Crea un usuario admin de prueba. Solo accede a la URL.
+    GET /auth/create-admin
+    """
+    username = "admin"
+    password = "admin"
+    email = "admin@test.com"
+    
+    # Verificar si el usuario ya existe
+    user_exists = get_user(db, username)
+    if user_exists:
+        raise HTTPException(status_code=400, detail="El usuario admin ya existe")
+    
+    hashed = get_password_hash(password)
+    
+    new_admin = User(
+        email=email,
+        username=username,
+        password_hash=hashed,
+        role="admin",
+        is_Active=True,
+        name="Admin",
+        apellidos="Test",
+        saldo=10000.0
+    )
+    
+    db.add(new_admin)
+    db.commit()
+    db.refresh(new_admin)
+    
+    return {
+        "message": "Usuario administrador creado exitosamente",
+        "username": "admin",
+        "password": "admin",
+        "role": "admin",
+        "saldo": 10000.0
+    }
+
+
 def get_user_from_token(db: Session, token: str):
     payload = decode_access_token(token)
     if not payload:

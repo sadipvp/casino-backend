@@ -91,6 +91,28 @@ def User_saldo(
     return { "saldo": current_user.saldo }
 
 #### solo development ####
+@router.get("/id/{user_id}")
+def get_username_by_id(
+    user_id: int,
+    db: Session = Depends(get_session),
+):
+    """
+    Obtiene el username de un usuario a partir de su ID.
+    Ejemplo: GET /profile/id/1
+    """
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    return {
+        "user_id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "name": user.name,
+        "role": user.role
+    }
+
+
 @router.get("/add-balance/{user_id}/{amount}")
 def add_balance_to_user(
     user_id: int,
