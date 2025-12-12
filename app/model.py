@@ -82,3 +82,42 @@ class CreditRequest(SQLModel, table=True):
 
     # relación opcional para uso en consultas
     # user: Optional[User] = Relationship(back_populates="credit_requests")
+
+
+class SlotSession(SQLModel, table=True):
+    """Sesión de slot machine con sistema provably fair"""
+    id: Optional[int] = Field(default=None, primary_key=True)
+    server_seed: str  # Seed del servidor (se mantiene secreto hasta reveal)
+    server_seed_hash: str  # Hash público del server seed
+    nonce: int = Field(default=0)  # Contador de spins
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    revealed: bool = Field(default=False)  # Si el seed fue revelado
+    
+    # Relación con spins
+    spins: List["SlotSpin"] = Relationship(back_populates="session")
+
+
+class SlotSpin(SQLModel, table=True):
+    """Registro de cada giro de slot machine"""
+    id: Optional[int] = Field(default=None, primary_key=True)
+    session_id: int = Field(foreign_key="slotsession.id")
+    user_id: Optional[int] = Field(default=None, foreign_key="user.id")
+    
+    # Provably fair
+    nonce: int
+    client_seed: str
+    hmac_hex: str
+    
+    # Resultado del giro
+    symbols: str  # JSON con los símbolos resultantes, ej: '["🍒","🍋","🍊"]'
+    multiplier: float = Field(default=0.0)  # Multiplicador ganado
+    
+    # Apuesta y ganancia
+    bet_amount: float = Field(default=0.0)
+    lines: int = Field(default=1)  # Número de líneas apostadas
+    win_amount: float = Field(default=0.0)  # Cantidad ganada
+    
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    
+    # Relación inversa
+    session: Optional[SlotSession] = Relationship(back_populates="spins")

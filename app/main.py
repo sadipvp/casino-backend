@@ -9,6 +9,7 @@ from app.auth.routes import router as auth_router
 
 from app.games.slot_machine.routes import router as slot_router
 from app.games.roulette.routes import router as roulette_router  # <- nueva línea
+from app.games.slots.routes import router as slots_router  # <- nuevo slot machine provably fair
 
 from app.users.routes import router as profile_router  # <--- nuevo
 
@@ -45,6 +46,7 @@ app.include_router(auth_router)
 app.include_router(profile_router)   # <--- nuevo
 app.include_router(slot_router)
 app.include_router(roulette_router)
+app.include_router(slots_router)  # <--- nuevo slot machine provably fair
 
 app.include_router(admin_router)
 
