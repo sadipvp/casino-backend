@@ -50,9 +50,14 @@ def list_credits(status: Optional[str] = None, token: str = Depends(oauth2_schem
     for r in reqs:
         if not is_admin and r.user_id != user.id:
             continue
+        # Obtener username del usuario que solicita
+        req_user = db.get(User, r.user_id)
+        username = req_user.username if req_user else None
+        
         out.append({
             "id": r.id,
             "user_id": r.user_id,
+            "username": username,
             "amount": r.amount,
             "status": r.status,
             "created_at": r.created_at.isoformat(),
