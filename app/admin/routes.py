@@ -1,5 +1,5 @@
 # app/admin/routes.py
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Body
 from pydantic import BaseModel
 from typing import Optional, List
 
@@ -50,9 +50,14 @@ def list_credits(status: Optional[str] = None, token: str = Depends(oauth2_schem
     for r in reqs:
         if not is_admin and r.user_id != user.id:
             continue
+        # Obtener username del usuario que solicita
+        req_user = db.get(User, r.user_id)
+        username = req_user.username if req_user else None
+        
         out.append({
             "id": r.id,
             "user_id": r.user_id,
+            "username": username,
             "amount": r.amount,
             "status": r.status,
             "created_at": r.created_at.isoformat(),
@@ -63,7 +68,7 @@ def list_credits(status: Optional[str] = None, token: str = Depends(oauth2_schem
     return out
 
 @router.post("/credits/{request_id}/approve")
-def approve_credit(request_id: int, payload: ApproveDenyIn = None, token: str = Depends(oauth2_scheme), db: Session = Depends(get_session)):
+def approve_credit(request_id: int, token: str = Depends(oauth2_scheme), db: Session = Depends(get_session), payload: Optional[ApproveDenyIn] = Body(None)):
     user = get_user_from_token(db, token)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid token")
@@ -78,7 +83,7 @@ def approve_credit(request_id: int, payload: ApproveDenyIn = None, token: str = 
     return {"id": req.id, "status": req.status, "user_id": req.user_id, "amount": req.amount, "reviewed_at": req.reviewed_at.isoformat()}
 
 @router.post("/credits/{request_id}/deny")
-def deny_credit(request_id: int, payload: ApproveDenyIn = None, token: str = Depends(oauth2_scheme), db: Session = Depends(get_session)):
+def deny_credit(request_id: int, token: str = Depends(oauth2_scheme), db: Session = Depends(get_session), payload: Optional[ApproveDenyIn] = Body(None)):
     user = get_user_from_token(db, token)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid token")
