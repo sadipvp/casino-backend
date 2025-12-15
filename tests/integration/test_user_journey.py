@@ -46,7 +46,7 @@ def test_complete_user_journey(client: TestClient):
     assert profile_data["nombres"] == "Journey"
     assert profile_data["apellidos"] == "User"
     assert profile_data["correo_electronico"] == "journey.user@example.com"
-    assert profile_data["saldo"] == 0.0  # Saldo inicial
+    assert profile_data["saldo"] == 1000.0  # Saldo inicial
 
     # === FASE 4: ACTUALIZACIÓN DE PERFIL ===
     update_response = client.patch(
@@ -68,6 +68,7 @@ def test_complete_user_journey(client: TestClient):
     balance_data = balance_response.json()
     assert "saldo" in balance_data
     initial_balance = balance_data["saldo"]
+    assert initial_balance == 1000.0
 
     # === FASE 6: DEPÓSITO DE FONDOS (para testing) ===
     deposit_response = client.post(
@@ -77,7 +78,7 @@ def test_complete_user_journey(client: TestClient):
     )
     assert deposit_response.status_code == 200
     deposit_data = deposit_response.json()
-    assert deposit_data["saldo"] == 100.0
+    assert deposit_data["saldo"] == 1100.0
 
     # === FASE 7: CREACIÓN DE SESIÓN DE RULETA ===
     session_response = client.post("/v1/roulette/session", headers=headers)
@@ -153,7 +154,7 @@ def test_complete_user_journey(client: TestClient):
     # Verificar que las estadísticas se actualizaron
     assert "ganancias_totales" in final_profile_data
     assert "perdidas_totales" in final_profile_data
-    assert final_profile_data["saldo"] != 100.0  # El saldo debería haber cambiado
+    assert final_profile_data["saldo"] != 1100.0  # El saldo debería haber cambiado
 
     # === FASE 10: LISTADO DE SPINS ===
     spins_response = client.get(f"/v1/roulette/session/{session_id}/spins", headers=headers)
@@ -252,9 +253,7 @@ def test_credit_approval_journey(client: TestClient, admin_headers):
                 # === FASE 5: VERIFICACIÓN DE BALANCE ===
                 balance_response = client.get("/profile/me/saldo", headers=user_headers)
                 balance_data = balance_response.json()
-                assert balance_data["saldo"] == 75.0
-            
-
+                assert balance_data["saldo"] == 1075.0
 def test_multiple_users_concurrent_journey(client: TestClient):
     """
     Test que simula múltiples usuarios usando el sistema concurrentemente

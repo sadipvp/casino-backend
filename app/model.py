@@ -23,7 +23,7 @@ class User(SQLModel, table=True):
     numero_documento: Optional[str] = None 
 
     # ===== NUEVOS CAMPOS PARA LA PARTE DERECHA =====
-    saldo: float = Field(default=0.0)
+    saldo: float = Field(default=500.0)
     ganancias_totales: float = Field(default=0.0)
     perdidas_totales: float = Field(default=0.0)
 
